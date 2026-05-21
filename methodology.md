@@ -115,7 +115,8 @@ This section is updated whenever a limitation is discovered.
 
 ## 7. Change log
 
-| Date | Change |
-|------|--------|
+| Date       | Change |
+|------------|--------|
 | 2026-05-16 | Initial methodology document created. LGA granularity locked. 12-month forecast horizon locked. Working rental stress definition: rent > 30% of median household income. |
 | 2026-05-16 | DFFH time-series file located (`Quarterly median rents by Local Government Area`). Provides 26+ years of quarterly LGA-level rental data across 6 property types in a single file. Confirmed 40,340 clean rows after parsing, covering 78 LGAs and 106 quarters (1999-Q2 to 2025-Q3). |
+| 2026-05-22 | DFFH affordability time-series parser added. Provides 25.5 years of LGA × bedroom-category affordability data (count of affordable lettings, percent affordable). 39,390 clean rows across 78 LGAs and 101 quarters (2000-Q1 to 2025-Q3). DFFH's official affordability methodology can now be used directly rather than computing our own. |
