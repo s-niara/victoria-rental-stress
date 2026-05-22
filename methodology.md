@@ -68,20 +68,21 @@ The final choice will be made after EDA in Phase 1, and any change will be docum
   - "Moving quarterly median" smooths over three months, not a snapshot of a single month
   - Reflects new lettings only — does not capture in-place tenants who may pay below current market rates
 
-### 4.2 ABS Personal Income in Australia
-- **Source:** Australian Bureau of Statistics — `abs.gov.au/statistics/labour/earnings-and-working-conditions/personal-income-australia`
-- **Coverage:** 2011-12 to most recent (currently 2022-23)
-- **Frequency:** Annual
-- **Granularity used:** LGA-level median total personal income, equivalised household income where available
+### 4.2 ABS Census 2021 G33 — Household Income by Composition
+- **Source:** ABS Census 2021 G33, accessed via the Digital Atlas of Australia
+- **Coverage:** Single snapshot, August 2021
+- **Frequency:** Census (5-yearly; next release 2026)
+- **Granularity used:** LGA-level, household income distribution across 17 weekly income bands
+- **Derived metrics:** Weighted median weekly household income, weighted 25th percentile (computed via histogram-quantile interpolation)
 - **Known caveats:**
-  - Annual data only — must be interpolated or step-mapped to quarterly rental data
-  - Small random adjustments applied for confidentiality
-  - LGA boundaries change over time — concordance to current boundaries required for time series
+  - **Single point in time.** This dataset does not provide an annual time series at LGA level. Income enters our rental stress calculation as a fixed denominator anchored to 2021, while rent varies through time (quarterly). Implication: rental stress trajectories reflect rent-side movement, with income held constant. This is a reasonable simplification given (a) the modest variation in real household income at LGA level over short horizons, (b) the lack of consistent LGA-level annual income data from any public source that includes government allowances, and (c) the primary signal of interest in this project is the rent-side dynamic.
+  - **Why this over the alternatives:** ABS's "Personal Income in Australia" series provides annual data (2018-2022 at LGA level via Region Summary) but excludes government pensions and allowances. For rental affordability analysis, this exclusion systematically understates available income in retirement-heavy and welfare-recipient LGAs, distorting the stress signal. Including government payments matters. The ArcGIS Data-by-Region feature service for income exists but exposes only the latest reference year per data item, not historical years.
+  - **Income band methodology:** The top band ($4000 or more) is open-ended. We cap it at $5000 as a conservative midpoint estimate for the histogram-quantile interpolation. This affects the median estimate only in LGAs where >50% of households are in the top band - this does not occur at the Victorian LGA level.
+  - **Confidentiality perturbation:** ABS applies small random adjustments to all cell counts to protect privacy. Effect on LGA-level aggregates is negligible (<1%).
+- **Decision documented in Section 3** to compute the rental stress ratio against this dataset's median (and optionally p25) weekly household income.
 
-### 4.3 ABS Census 2021
-- **Source:** ABS Census Tables (G33: Total household income by household composition)
-- **Granularity used:** LGA-level
-- **Use:** Cross-check and demographic enrichment
+### 4.3 Personal Income in Australia (REFERENCE ONLY)
+The ABS "Personal Income in Australia" release is widely cited and provides annual time-series data at LGA level for 2018-2022. We have not used it because it excludes government pensions and allowances and this systematically biases an affordability analysis. It is referenced here for transparency.
 
 ### 4.4 ABS LGA Boundaries
 - **Source:** ABS Australian Statistical Geography Standard (ASGS) — LGA 2021 edition
@@ -110,7 +111,7 @@ This section is updated whenever a limitation is discovered.
 - **Pandemic-era anomalies:** Rental data 2020-2022 contains unusual patterns (rent reductions, then sharp recovery) that may distort training. Treatment to be decided in Phase 2.
 - **Survivor bias in long time series:** LGAs with few bonds in any given quarter may be unreliable — a minimum-bond threshold will be applied.
 - **Property type coverage varies by LGA:** Different LGAs have data for different property types (inner-city LGAs have lots of flats but few houses; rural LGAs are the opposite). The aggregation approach for the final stress metric must account for this.
-
+- **Income as fixed denominator:** The rental stress calculation uses 2021 household income as a constant denominator across all quarters of rent data. Real income drift between 2021 and the modelled horizon is not captured. Where rental stress trajectories are interpreted, this should be flagged.
 ---
 
 ## 7. Change log
@@ -120,3 +121,4 @@ This section is updated whenever a limitation is discovered.
 | 2026-05-16 | Initial methodology document created. LGA granularity locked. 12-month forecast horizon locked. Working rental stress definition: rent > 30% of median household income. |
 | 2026-05-16 | DFFH time-series file located (`Quarterly median rents by Local Government Area`). Provides 26+ years of quarterly LGA-level rental data across 6 property types in a single file. Confirmed 40,340 clean rows after parsing, covering 78 LGAs and 106 quarters (1999-Q2 to 2025-Q3). |
 | 2026-05-22 | DFFH affordability time-series parser added. Provides 25.5 years of LGA × bedroom-category affordability data (count of affordable lettings, percent affordable). 39,390 clean rows across 78 LGAs and 101 quarters (2000-Q1 to 2025-Q3). DFFH's official affordability methodology can now be used directly rather than computing our own. |
+| 2026-05-22 | ABS Census 2021 G33 household income parser added. Used as the income source for the rental stress calculation - single point in time (2021) rather than annual time series. Decision documented in updated Section 4.2. 79 Victorian LGAs after filtering 3 administrative placeholders. LGA names normalised against DFFH (Bayside, Kingston, Latrobe, Colac-Otway, Merri-bek mappings). Median weekly household income range $906-$2487. p25 also computed for lower-quartile rental stress sensitivity work in Phase 2. |

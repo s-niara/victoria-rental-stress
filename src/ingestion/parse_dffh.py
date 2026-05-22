@@ -194,7 +194,7 @@ def parse_timeseries_sheet(
             continue
 
         lga_raw = str(col1).strip()
-        if lga_raw in SKIP_LGA_VALUES or lga_raw in KNOWN_REGIONS:
+        if lga_raw in SKIP_LGA_VALUES:
             continue
 
         lga = _normalise_lga_name(lga_raw)
