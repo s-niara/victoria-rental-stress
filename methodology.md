@@ -88,6 +88,20 @@ The ABS "Personal Income in Australia" release is widely cited and provides annu
 - **Source:** ABS Australian Statistical Geography Standard (ASGS) — LGA 2021 edition
 - **Use:** Map visualisation in the dashboard
 
+### 4.5 ABS ASGS Edition 3 LGA Boundaries
+- **Source:** ABS Australian Statistical Geography Standard (ASGS) Edition 3 (2021) LGA boundaries, accessed via the Digital Atlas of Australia (`digitalatlas::abs-asgs-edition-3-2021-local-government-areas`)
+- **Coverage:** All Australian LGAs (566 features); filtered to 79 Victorian LGAs
+- **Format:** GeoJSON, GDA2020 / WGS84 (CRS84) geographic coordinates
+- **Use:** Choropleth map base layer in the dashboard
+- **Transformations applied:**
+  - Filter to Victoria
+  - Drop 3 administrative placeholders (matching income data exclusion)
+  - Normalise LGA names to DFFH canonical form (matching income data mapping)
+  - Simplify polygons with Douglas-Peucker tolerance 0.0005 degrees
+- **Simplification trade-off:** At state-level zoom, the simplified polygons are visually indistinguishable from the originals. The simplification only becomes noticeable when zoomed into a single LGA boundary - which the dashboard does not do. Trade-off accepted in exchange for ~12x file size reduction, dramatically faster dashboard load times and lower bandwidth costs in production.
+- **Known caveats:**
+  - ABS LGA boundaries are statistical approximations of the legally gazetted local government boundaries, not the legal boundaries themselves. ABS notes they should not be used for legal purposes.
+  - 2021 vintage. LGA boundary changes since 2021 are minor in Victoria (Moreland → Merri-bek was a rename, not a boundary change). Future ASGS Edition 4 will become available in 2026 and may be adopted in a later revision.
 ---
 
 ## 5. Modelling approach (planned, Phase 3)
@@ -122,3 +136,5 @@ This section is updated whenever a limitation is discovered.
 | 2026-05-16 | DFFH time-series file located (`Quarterly median rents by Local Government Area`). Provides 26+ years of quarterly LGA-level rental data across 6 property types in a single file. Confirmed 40,340 clean rows after parsing, covering 78 LGAs and 106 quarters (1999-Q2 to 2025-Q3). |
 | 2026-05-22 | DFFH affordability time-series parser added. Provides 25.5 years of LGA × bedroom-category affordability data (count of affordable lettings, percent affordable). 39,390 clean rows across 78 LGAs and 101 quarters (2000-Q1 to 2025-Q3). DFFH's official affordability methodology can now be used directly rather than computing our own. |
 | 2026-05-22 | ABS Census 2021 G33 household income parser added. Used as the income source for the rental stress calculation - single point in time (2021) rather than annual time series. Decision documented in updated Section 4.2. 79 Victorian LGAs after filtering 3 administrative placeholders. LGA names normalised against DFFH (Bayside, Kingston, Latrobe, Colac-Otway, Merri-bek mappings). Median weekly household income range $906-$2487. p25 also computed for lower-quartile rental stress sensitivity work in Phase 2. |
+| 2026-05-23 | LGA boundary GeoJSON ingestion added. Source: ABS ASGS Edition 3 (2021) Local Government Areas, downloaded from Digital Atlas of Australia. Filtered to 79 Victorian LGAs (3 administrative placeholders excluded). LGA names normalised against the same mapping used for income (Bayside, Kingston, Latrobe, Colac-Otway, Merri-bek). Polygons simplified with Douglas-Peucker tolerance 0.0005 degrees, reducing output from ~22 MB (Vic only, full detail) to ~1.8 MB (98.8% reduction from the 151 MB national source). Output committed to git at data/reference/vic_lga_boundaries.geojson so the dashboard can render immediately on clone. |
+| 2026-05-23 | BUGFIX in parse_dffh.py: City of Hume LGA was being silently filtered out because its name matches the "Hume" DFFH region group label. The col 1 (LGA name) filter was incorrectly checking against KNOWN_REGIONS; regions only appear in col 0 as group headers, never as LGA names. Caught by the cross-dataset `test_g33_lgas_match_dffh_lgas` test introduced in Phase 1.4. Datasets regenerated. DFFH rents row count: 40,340 → 40,976 (now 79 LGAs, not 78). Affordability row count also updated. Reinforces value of cross-dataset compatibility tests in catching silent join failures across phases. |
