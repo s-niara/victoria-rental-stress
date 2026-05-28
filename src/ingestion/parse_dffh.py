@@ -194,6 +194,9 @@ def parse_timeseries_sheet(
             continue
 
         lga_raw = str(col1).strip()
+        # NOTE: do NOT also filter against KNOWN_REGIONS here. The City of Hume
+        # (an LGA) shares its name with the Hume region; in the time-series
+        # file regions only appear in col 0 as group headers, never in col 1.
         if lga_raw in SKIP_LGA_VALUES:
             continue
 
@@ -307,9 +310,10 @@ def parse_afford_sheet(
 
         col0_s = str(col0).strip()
 
-        # Filter out region labels and rollup section markers
-        if col0_s in KNOWN_REGIONS:
-            continue
+        # Filter out rollup section markers and totals.
+        # NOTE: do NOT filter against KNOWN_REGIONS here - in the affordability
+        # file col 0 contains ONLY LGA names (e.g. 'Hume' is the LGA, not the
+        # region). The affordability file has no region group headers at all.
         if col0_s in SKIP_REGION_SECTIONS:
             continue
         if col0_s in SKIP_LGA_VALUES:
